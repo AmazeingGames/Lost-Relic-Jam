@@ -100,6 +100,7 @@ public class PlayerMovement : MonoBehaviour
        
         if(isGrounded)
         {
+            //This makes me jump higher when moving
             ApplyGroundLinearDrag();
         }
         else
@@ -130,7 +131,7 @@ public class PlayerMovement : MonoBehaviour
     }
 
     void ApplyGroundLinearDrag()
-    { 
+    {
         if (Mathf.Abs(horizontalInput) < .4f || isChaningDirection)
         {
             rb2d.drag = deceleration;
