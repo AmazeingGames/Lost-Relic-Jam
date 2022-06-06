@@ -17,8 +17,14 @@ public class PlayerMovement : MonoBehaviour
     public float fallMultiplier = 8f;
     public float lowJumpFallMultiplier = 5f;
 
+
     public float jumpRememberTime = .25f;
     public float groundedRememberTime = .25f;
+
+    [Header("Corner Correction (don't change y or z)")]
+    public float topRayCastLength;
+    public Vector3 edgeRaycastOffset;
+    public Vector3 innerRaycastOffset;
 
     float jumpPressedRemember = 0f;
     float groundedRemember = 0f;
@@ -35,6 +41,8 @@ public class PlayerMovement : MonoBehaviour
     float verticalInput;
     bool isChaningDirection => (rb2d.velocity.x > 0f && horizontalInput < 0f || rb2d.velocity.x < 0 && horizontalInput > 0);
     bool canJump => jumpPressedRemember > 0 && groundedRemember > 0;
+    bool canCornerCorrect => Physics2D.Raycast(transform.position + edgeRaycastOffset, Vector2.up, topRayCastLength, groundLayer) && !Physics2D.Raycast(transform.position + innerRaycastOffset, Vector2.up, topRayCastLength, groundLayer) || Physics2D.Raycast(transform.position - edgeRaycastOffset, Vector2.up, topRayCastLength, groundLayer) && !Physics2D.Raycast(transform.position - innerRaycastOffset, Vector2.up, topRayCastLength, groundLayer);
+
 
     void OnEnable()
     {
@@ -89,7 +97,7 @@ public class PlayerMovement : MonoBehaviour
     void FixedUpdate()
     {
         MoveCharacter();
-        
+       
         if(isGrounded)
         {
             ApplyGroundLinearDrag();
@@ -99,7 +107,6 @@ public class PlayerMovement : MonoBehaviour
             ApplyAirLinearDrag();
             FallMultiplier();
         }
-
         if (canJump)
         {
             Debug.Log($"{canJump}");
@@ -107,6 +114,8 @@ public class PlayerMovement : MonoBehaviour
             groundedRemember = 0;
             Jump();
         }
+        if (canCornerCorrect)
+            CornerCorrect(rb2d.velocity.y);
     }
 
 
@@ -148,10 +157,20 @@ public class PlayerMovement : MonoBehaviour
     private void OnDrawGizmos()
 
     {
+        //Ground Check
         Gizmos.color = Color.green;
-
         Gizmos.DrawLine(transform.position + groundRaycastOffset, transform.position + groundRaycastOffset + Vector3.down * groundRayCastLength);
         Gizmos.DrawLine(transform.position - groundRaycastOffset, transform.position - groundRaycastOffset + Vector3.down * groundRayCastLength);
+
+        //Corner Check
+        Gizmos.DrawLine(transform.position + edgeRaycastOffset, transform.position + edgeRaycastOffset + Vector3.up * topRayCastLength);
+        Gizmos.DrawLine(transform.position - edgeRaycastOffset, transform.position - edgeRaycastOffset + Vector3.up * topRayCastLength);
+        Gizmos.DrawLine(transform.position + innerRaycastOffset, transform.position + innerRaycastOffset + Vector3.up * topRayCastLength);
+        Gizmos.DrawLine(transform.position - innerRaycastOffset, transform.position - innerRaycastOffset + Vector3.up * topRayCastLength);
+
+        //Corner Distance Check
+        Gizmos.DrawLine(transform.position - innerRaycastOffset + Vector3.up * topRayCastLength, transform.position - innerRaycastOffset + Vector3.up * topRayCastLength + Vector3.left * topRayCastLength);
+        Gizmos.DrawLine(transform.position + innerRaycastOffset + Vector3.up * topRayCastLength, transform.position + innerRaycastOffset + Vector3.up * topRayCastLength + Vector3.right * topRayCastLength);
     }
 
     void FallMultiplier()
@@ -174,4 +193,25 @@ public class PlayerMovement : MonoBehaviour
         transform.Rotate(0f, 180f, 0f);
     }
 
+    void CornerCorrect(float yVelocity)
+    {
+        //Push to right
+        RaycastHit2D hit = Physics2D.Raycast(transform.position - innerRaycastOffset + Vector3.up * topRayCastLength, Vector3.left, topRayCastLength, groundLayer);
+
+        if (hit.collider != null)
+        {
+            float newPos = Vector3.Distance(new Vector3(hit.point.x, transform.position.y, 0f) + Vector3.up * topRayCastLength, transform.position - edgeRaycastOffset + Vector3.up * topRayCastLength);
+            transform.position = new Vector3(transform.position.x + newPos, transform.position.y, transform.position.z);
+            rb2d.velocity = new Vector2(rb2d.velocity.x, yVelocity);
+        }
+
+        //Push to left
+        hit = Physics2D.Raycast(transform.position + innerRaycastOffset + Vector3.up * topRayCastLength, Vector3.right, topRayCastLength, groundLayer);
+        if (hit.collider != null)
+        {
+            float newPos = Vector3.Distance(new Vector3(hit.point.x, transform.position.y, 0f) + Vector3.up * topRayCastLength, transform.position + edgeRaycastOffset + Vector3.up * topRayCastLength);
+            transform.position = new Vector3(transform.position.x - newPos, transform.position.y, transform.position.z);
+            rb2d.velocity = new Vector2(rb2d.velocity.x, yVelocity);
+        }
+    }
 }
