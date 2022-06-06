@@ -77,13 +77,7 @@ public class PlayerMovement : MonoBehaviour
         {
             jumpPressedRemember = jumpRememberTime;
         }
-        if (canJump)
-        {
-            Debug.Log($"{canJump}");
-            jumpPressedRemember = 0;
-            groundedRemember = 0;
-            Jump();
-        }
+       
         if (rb2d.velocity.y < 0)
         {
             anim.SetBool($"{AnimParamaters.isFalling}", true);
@@ -104,6 +98,14 @@ public class PlayerMovement : MonoBehaviour
         {
             ApplyAirLinearDrag();
             FallMultiplier();
+        }
+
+        if (canJump)
+        {
+            Debug.Log($"{canJump}");
+            jumpPressedRemember = 0;
+            groundedRemember = 0;
+            Jump();
         }
     }
 
@@ -135,6 +137,7 @@ public class PlayerMovement : MonoBehaviour
 
     void Jump()
     {
+        ApplyAirLinearDrag();
         anim.SetBool($"{AnimParamaters.isJumping}", true);
         anim.SetBool($"{AnimParamaters.isFalling}", false);
 
