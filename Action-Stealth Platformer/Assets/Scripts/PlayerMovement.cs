@@ -5,6 +5,7 @@ using UnityEngine;
 public class PlayerMovement : MonoBehaviour
 {
     Rigidbody2D rb2d;
+    Animator anim;
     
     public float moveAcceleration;
     public float maxMoveSpeed;
@@ -17,11 +18,15 @@ public class PlayerMovement : MonoBehaviour
     public float lowJumpFallMultiplier = 5f;
 
     public float jumpRememberTime = .25f;
-    float jumpPressedRemember = 0f;
-
     public float groundedRememberTime = .25f;
+
+    float jumpPressedRemember = 0f;
     float groundedRemember = 0f;
 
+    bool isFacingRight = true;
+
+    enum AnimStates { Idle, Run, Jump, Fall, Landing }
+    enum AnimParamaters { isGrounded, horInput, isJumping, isFalling }
 
     private Vector3 groundRaycastOffset;
     bool isGrounded => Physics2D.Raycast(transform.position + groundRaycastOffset, Vector2.down, groundRayCastLength, groundLayer) || Physics2D.Raycast(transform.position - groundRaycastOffset, Vector2.down, groundRayCastLength, groundLayer);
@@ -45,17 +50,27 @@ public class PlayerMovement : MonoBehaviour
     void Start()
     {
         rb2d = GetComponent<Rigidbody2D>();
+        anim = GetComponent<Animator>();
     }
 
     // Update is called once per frame
     void Update()
     {
+        anim.SetBool($"{AnimParamaters.isGrounded}", isGrounded);
+        anim.SetFloat($"{AnimParamaters.horInput}", Mathf.Abs(horizontalInput));
         horizontalInput = Input.GetAxisRaw("Horizontal");
 
+        if (horizontalInput < 0 && isFacingRight)
+            Flip();
+        else if(horizontalInput > 0 && !isFacingRight)
+            Flip();
         groundedRemember -= Time.deltaTime;
         jumpPressedRemember -= Time.deltaTime;
         if (isGrounded)
         {
+            anim.SetBool($"{AnimParamaters.isJumping}", false);
+            anim.SetBool($"{AnimParamaters.isFalling}", false);
+
             groundedRemember = groundedRememberTime;
         }
         if (Input.GetButtonDown("Jump"))
@@ -68,6 +83,11 @@ public class PlayerMovement : MonoBehaviour
             jumpPressedRemember = 0;
             groundedRemember = 0;
             Jump();
+        }
+        if (rb2d.velocity.y < 0)
+        {
+            anim.SetBool($"{AnimParamaters.isFalling}", true);
+            anim.SetBool($"{AnimParamaters.isJumping}", false);
         }
              
     }
@@ -115,6 +135,9 @@ public class PlayerMovement : MonoBehaviour
 
     void Jump()
     {
+        anim.SetBool($"{AnimParamaters.isJumping}", true);
+        anim.SetBool($"{AnimParamaters.isFalling}", false);
+
         rb2d.velocity = new Vector2(rb2d.velocity.x, 0f);
         rb2d.AddForce(Vector2.up * jumpForce, ForceMode2D.Impulse);
     }
@@ -140,6 +163,12 @@ public class PlayerMovement : MonoBehaviour
         }
         else
             rb2d.gravityScale = 1f;
+    }
+
+    void Flip()
+    {
+        isFacingRight = !isFacingRight;
+        transform.Rotate(0f, 180f, 0f);
     }
 
 }
