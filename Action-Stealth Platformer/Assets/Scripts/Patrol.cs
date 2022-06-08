@@ -46,6 +46,5 @@ public class Patrol : MonoBehaviour
     {
         transform.localScale = new Vector2(transform.localScale.x * -1, transform.localScale.y);
         walkSpeed *= -1;
-        Debug.Log("Flipped");
     }
 }
