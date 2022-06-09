@@ -40,11 +40,14 @@ public class PlayerMovement : MonoBehaviour
 
     public float ledgeClimbAnimLength;
 
-    public float ledgeClimbStartXOffset;
-    public float ledgeClimbStartYOffset;
+    //Implemented new solution for start position
+    //public float ledgeClimbStartXOffset;
+    //public float ledgeClimbStartYOffset;
 
     public float ledgeClimbEndXOffset;
     public float ledgeClimbEndYOffset;
+
+    public Vector2 startAdjustment;
 
     bool isTouchingWall;
     bool isTouchingLedge;
@@ -53,9 +56,12 @@ public class PlayerMovement : MonoBehaviour
     bool isLedgeDetected;
 
     Vector2 ledgePosBot;
-    Vector2 ledgePos1;
-    Vector2 ledgePos2;
+    Vector2 ledgePosStart;
+    Vector2 ledgePosEnd;
 
+    Vector2 currentPos;
+
+    CapsuleCollider2D col;
 
     enum AnimStates { Idle, Run, Jump, Fall, Landing, LedgeClimb }
     enum AnimParamaters { isGrounded, horInput, isJumping, isFalling, isLedgeClimbing }
@@ -68,9 +74,12 @@ public class PlayerMovement : MonoBehaviour
     bool isChaningDirection => (rb2d.velocity.x > 0f && horizontalInput < 0f || rb2d.velocity.x < 0 && horizontalInput > 0);
     bool canJump => jumpPressedRemember > 0 && groundedRemember > 0;
     bool canCornerCorrect => Physics2D.Raycast(transform.position + edgeRaycastOffset, Vector2.up, topRayCastLength, terrainLayer) && !Physics2D.Raycast(transform.position + innerRaycastOffset, Vector2.up, topRayCastLength, terrainLayer) || Physics2D.Raycast(transform.position - edgeRaycastOffset, Vector2.up, topRayCastLength, terrainLayer) && !Physics2D.Raycast(transform.position - innerRaycastOffset, Vector2.up, topRayCastLength, terrainLayer);
+    bool isFalling => rb2d.velocity.y < 0;
 
     bool canMove = true;
     bool canFlip = true;
+
+
 
     void OnEnable()
     {
@@ -87,11 +96,13 @@ public class PlayerMovement : MonoBehaviour
     {
         rb2d = GetComponent<Rigidbody2D>();
         anim = GetComponent<Animator>();
+        col = GetComponent<CapsuleCollider2D>();
     }
 
     // Update is called once per frame
     void Update()
     {
+
         anim.SetBool($"{AnimParamaters.isGrounded}", isGrounded);
         anim.SetFloat($"{AnimParamaters.horInput}", Mathf.Abs(horizontalInput));
         horizontalInput = Input.GetAxisRaw("Horizontal");
@@ -117,7 +128,7 @@ public class PlayerMovement : MonoBehaviour
             jumpPressedRemember = jumpRememberTime;
         }
        
-        if (rb2d.velocity.y < 0)
+        if (isFalling)
         {
             anim.SetBool($"{AnimParamaters.isFalling}", true);
             anim.SetBool($"{AnimParamaters.isJumping}", false);
@@ -152,13 +163,57 @@ public class PlayerMovement : MonoBehaviour
             jumpPressedRemember = 0;
             groundedRemember = 0;
             Jump();
+           
         }
-        if (canCornerCorrect)
+        if (canCornerCorrect && !isGrounded)
             CornerCorrect(rb2d.velocity.y);
 }
+    void LedgeClimb()
+    {
+        if (isLedgeDetected && !canLedgeClimb && isFalling)
+        {
+            canLedgeClimb = true;
+            canMove = false;
+            canFlip = false;
+
+            currentPos = transform.position;
+
+            //Implemented new solution for start position
+            if (isFacingRight)
+            {
+                //ledgePosStart = new Vector2(Mathf.Floor(ledgePosBot.x + wallCheckDistance) - ledgeClimbStartXOffset, Mathf.Floor(ledgePosBot.y) + ledgeClimbStartYOffset);
+                ledgePosEnd = new Vector2(Mathf.Floor(ledgePosBot.x + wallCheckDistance) + ledgeClimbEndXOffset, Mathf.Floor(ledgePosBot.y) + ledgeClimbEndYOffset);
 
 
-void MoveCharacter()
+            }
+            else
+            {
+                //ledgePosStart = new Vector2(Mathf.Ceil(ledgePosBot.x - wallCheckDistance) + ledgeClimbStartXOffset, Mathf.Floor(ledgePosBot.y) + ledgeClimbStartYOffset);
+                ledgePosEnd = new Vector2(Mathf.Ceil(ledgePosBot.x - wallCheckDistance) - ledgeClimbEndXOffset, Mathf.Floor(ledgePosBot.y) + ledgeClimbEndYOffset);
+            }
+
+            anim.SetBool($"{AnimParamaters.isLedgeClimbing}", canLedgeClimb);
+            StartCoroutine(FinishLedgeClimb());
+        }
+        
+         if(canLedgeClimb)
+           transform.position = currentPos + startAdjustment;
+
+    }
+
+    IEnumerator FinishLedgeClimb()
+    {
+        yield return new WaitForSeconds(ledgeClimbAnimLength);
+        Debug.Log("Finish ledge climb");
+        canLedgeClimb = false;
+        transform.position = ledgePosEnd;
+        canMove = true;
+        canFlip = true;
+        isLedgeDetected = false;
+        anim.SetBool($"{AnimParamaters.isLedgeClimbing}", canLedgeClimb);
+    }
+
+    void MoveCharacter()
     {
         rb2d.AddForce(new Vector2(horizontalInput, 0f) * moveAcceleration);
 
@@ -192,46 +247,7 @@ void MoveCharacter()
         rb2d.velocity = new Vector2(rb2d.velocity.x, 0f);
         rb2d.AddForce(Vector2.up * jumpForce, ForceMode2D.Impulse);
     }
-
-    void LedgeClimb()
-    {
-        if (isLedgeDetected && !canLedgeClimb && rb2d.velocity.y < 0)
-        {
-            canLedgeClimb = true;
-
-            if (isFacingRight)
-            {
-                ledgePos1 = new Vector2(Mathf.Floor(ledgePosBot.x + wallCheckDistance) - ledgeClimbStartXOffset, Mathf.Floor(ledgePosBot.y) + ledgeClimbStartYOffset);
-                ledgePos2 = new Vector2(Mathf.Floor(ledgePosBot.x + wallCheckDistance) + ledgeClimbEndXOffset, Mathf.Floor(ledgePosBot.y) + ledgeClimbEndYOffset);
-            }
-            else
-            {
-                ledgePos1 = new Vector2(Mathf.Ceil(ledgePosBot.x - wallCheckDistance) + ledgeClimbStartXOffset, Mathf.Floor(ledgePosBot.y) + ledgeClimbStartYOffset);
-                ledgePos2 = new Vector2(Mathf.Ceil(ledgePosBot.x - wallCheckDistance) - ledgeClimbEndXOffset, Mathf.Floor(ledgePosBot.y) + ledgeClimbEndYOffset);
-            }
-            canMove = false;
-            canFlip = false;
-
-            anim.SetBool($"{AnimParamaters.isLedgeClimbing}", canLedgeClimb);
-            StartCoroutine(FinishLedgeClimb());
-        }
-
-        if (canLedgeClimb)
-            transform.position = ledgePos1;
-
-    }
-
-    IEnumerator FinishLedgeClimb()
-    {
-        yield return new WaitForSeconds(ledgeClimbAnimLength);
-        Debug.Log("Finish ledge climb");
-        canLedgeClimb = false;
-        transform.position = ledgePos2;
-        canMove = true;
-        canFlip = true;
-        isLedgeDetected = false;
-        anim.SetBool($"{AnimParamaters.isLedgeClimbing}", canLedgeClimb);
-    }
+    
 
     private void OnDrawGizmos()
 
@@ -258,12 +274,15 @@ void MoveCharacter()
 
         Gizmos.color = Color.green;
 
-        Gizmos.DrawLine(ledgePos1, ledgePos2);
+        //Implemented new solution for start position
+        //Gizmos.DrawLine(ledgePosStart, ledgePosEnd);
+        Gizmos.DrawLine(currentPos, ledgePosEnd);
+
     }
 
     void FallMultiplier()
     {
-        if (rb2d.velocity.y < 0)
+        if (isFalling)
         {
             rb2d.gravityScale = fallMultiplier;
         }
@@ -311,7 +330,7 @@ void MoveCharacter()
         isTouchingWall = Physics2D.Raycast(wallCheck.position, transform.right, wallCheckDistance, terrainLayer);
         isTouchingLedge = Physics2D.Raycast(ledgeCheck.position, transform.right, wallCheckDistance, terrainLayer);
 
-        if (isTouchingWall && !isTouchingLedge && !isLedgeDetected)
+        if (isTouchingWall && !isTouchingLedge && !isLedgeDetected && isFalling)
         {
             Debug.Log("We are touching a ledge");
             isLedgeDetected = true;
