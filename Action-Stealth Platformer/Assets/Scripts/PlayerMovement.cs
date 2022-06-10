@@ -56,9 +56,8 @@ public class PlayerMovement : MonoBehaviour
     bool isLedgeDetected;
 
     Vector2 ledgePosBot;
-    Vector2 ledgePosStart;
+    //Vector2 ledgePosStart;
     Vector2 ledgePosEnd;
-
     Vector2 currentPos;
 
     CapsuleCollider2D col;
@@ -250,7 +249,6 @@ public class PlayerMovement : MonoBehaviour
     
 
     private void OnDrawGizmos()
-
     {
         //Ground Check
         Gizmos.color = Color.green;
@@ -277,7 +275,6 @@ public class PlayerMovement : MonoBehaviour
         //Implemented new solution for start position
         //Gizmos.DrawLine(ledgePosStart, ledgePosEnd);
         Gizmos.DrawLine(currentPos, ledgePosEnd);
-
     }
 
     void FallMultiplier()
