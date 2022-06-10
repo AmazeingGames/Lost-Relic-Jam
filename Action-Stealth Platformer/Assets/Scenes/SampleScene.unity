@@ -283,12 +283,9 @@ MonoBehaviour:
   ledgeCheck: {fileID: 1895634971}
   wallCheckDistance: 0.3
   ledgeClimbAnimLength: 0.75
-  ledgeClimbStartXOffset: 0.3
-  ledgeClimbStartYOffset: -0.38
   ledgeClimbEndXOffset: 1
-  ledgeClimbEndYOffset: 0.5
-  Adjustment: {x: 1.3, y: 1.2}
-  Adjustment2: {x: 0, y: -0.6}
+  ledgeClimbEndYOffset: 1
+  startAdjustment: {x: 0, y: -0.6}
 --- !u!114 &325259192
 MonoBehaviour:
   m_ObjectHideFlags: 0
