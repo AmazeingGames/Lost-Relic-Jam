@@ -67,7 +67,7 @@ public class PlayerMovement : MonoBehaviour
     enum AnimParamaters { isGrounded, horInput, isJumping, isFalling, isLedgeClimbing }
 
     private Vector3 groundRaycastOffset;
-    bool isGrounded => Physics2D.Raycast(transform.position + groundRaycastOffset, Vector2.down, groundRayCastLength, terrainLayer) || Physics2D.Raycast(transform.position - groundRaycastOffset, Vector2.down, groundRayCastLength, terrainLayer);
+    [HideInInspector]public bool isGrounded => Physics2D.Raycast(transform.position + groundRaycastOffset, Vector2.down, groundRayCastLength, terrainLayer) || Physics2D.Raycast(transform.position - groundRaycastOffset, Vector2.down, groundRayCastLength, terrainLayer);
 
     float horizontalInput;
     float verticalInput;
