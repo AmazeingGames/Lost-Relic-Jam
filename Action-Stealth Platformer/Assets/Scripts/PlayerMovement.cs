@@ -2,7 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class PlayerMovement : MonoBehaviour
+public class PlayerMovement : LedgeDetection
 {
     Rigidbody2D rb2d;
     Animator anim;
@@ -10,14 +10,12 @@ public class PlayerMovement : MonoBehaviour
     public float moveAcceleration;
     public float maxMoveSpeed;
     public float deceleration;
-    public LayerMask terrainLayer;
+
     public float groundRayCastLength;
     public float jumpForce = 12f;
     public float airLinearDrag = 2.5f;
     public float fallMultiplier = 8f;
     public float lowJumpFallMultiplier = 5f;
-
-    public Transform wallCheck;
 
     public float jumpRememberTime = .25f;
     public float groundedRememberTime = .25f;
@@ -34,9 +32,7 @@ public class PlayerMovement : MonoBehaviour
     bool isFacingRight = true;
 
     [Header("Ledge Climb")]
-    public Transform ledgeCheck;
 
-    public float wallCheckDistance;
 
     public float ledgeClimbAnimLength;
 
@@ -49,18 +45,7 @@ public class PlayerMovement : MonoBehaviour
 
     public Vector2 startAdjustment;
 
-    bool isTouchingWall;
-    bool isTouchingLedge;
-
     bool canLedgeClimb = false;
-    bool isLedgeDetected;
-
-    Vector2 ledgePosBot;
-    Vector2 ledgePosStart;
-    Vector2 ledgePosEnd;
-
-    Vector2 currentPos;
-
     CapsuleCollider2D col;
 
     enum AnimStates { Idle, Run, Jump, Fall, Landing, LedgeClimb }
@@ -139,7 +124,8 @@ public class PlayerMovement : MonoBehaviour
 
     void FixedUpdate()
     {
-        CheckSurroundings();
+        if(isFalling)
+            CheckSurroundings();
         //Debug.Log($"Can ledge climb: {canLedgeClimb}");
         //Debug.Log($"Is touching wall: {isTouchingWall}");
         //Debug.Log($"Is ledge detected: {isLedgeDetected}");
@@ -183,8 +169,6 @@ public class PlayerMovement : MonoBehaviour
             {
                 //ledgePosStart = new Vector2(Mathf.Floor(ledgePosBot.x + wallCheckDistance) - ledgeClimbStartXOffset, Mathf.Floor(ledgePosBot.y) + ledgeClimbStartYOffset);
                 ledgePosEnd = new Vector2(Mathf.Floor(ledgePosBot.x + wallCheckDistance) + ledgeClimbEndXOffset, Mathf.Floor(ledgePosBot.y) + ledgeClimbEndYOffset);
-
-
             }
             else
             {
@@ -218,9 +202,7 @@ public class PlayerMovement : MonoBehaviour
         rb2d.AddForce(new Vector2(horizontalInput, 0f) * moveAcceleration);
 
         if (Mathf.Abs(rb2d.velocity.x) > maxMoveSpeed)
-        {
             rb2d.velocity = new Vector2(Mathf.Sign(rb2d.velocity.x) * maxMoveSpeed, rb2d.velocity.y);
-        }
     }
 
     void ApplyGroundLinearDrag()
@@ -324,18 +306,4 @@ public class PlayerMovement : MonoBehaviour
             rb2d.velocity = new Vector2(rb2d.velocity.x, yVelocity);
         }
     }
-
-    void CheckSurroundings()
-    {
-        isTouchingWall = Physics2D.Raycast(wallCheck.position, transform.right, wallCheckDistance, terrainLayer);
-        isTouchingLedge = Physics2D.Raycast(ledgeCheck.position, transform.right, wallCheckDistance, terrainLayer);
-
-        if (isTouchingWall && !isTouchingLedge && !isLedgeDetected && isFalling)
-        {
-            Debug.Log("We are touching a ledge");
-            isLedgeDetected = true;
-            ledgePosBot = wallCheck.position;
-        }
-    }
-
 }
