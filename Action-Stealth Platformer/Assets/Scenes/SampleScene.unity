@@ -623,6 +623,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   lightPlatform: {fileID: 5511632060389112834, guid: 7594f4ca66ce9094887d8512055c6c94, type: 3}
   player: {fileID: 325259184}
+  time: 3
+  yoffset: -0.25
+  numberOfPlatforms: 4
+  playerPosition: {x: 0, y: 0}
 --- !u!1 &402970375
 GameObject:
   m_ObjectHideFlags: 0

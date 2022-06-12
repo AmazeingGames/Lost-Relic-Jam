@@ -16,6 +16,9 @@ public class PlayerMovement : MonoBehaviour
     public float airLinearDrag = 2.5f;
     public float fallMultiplier = 8f;
     public float lowJumpFallMultiplier = 5f;
+    //Andres double jump attempt
+    public int extraJumps = 1;
+    public int extraJumpsValue;
 
     public Transform wallCheck;
 
@@ -72,7 +75,7 @@ public class PlayerMovement : MonoBehaviour
     float horizontalInput;
     float verticalInput;
     bool isChaningDirection => (rb2d.velocity.x > 0f && horizontalInput < 0f || rb2d.velocity.x < 0 && horizontalInput > 0);
-    bool canJump => jumpPressedRemember > 0 && groundedRemember > 0;
+    bool canJump => jumpPressedRemember > 0 && groundedRemember > 0 && (isGrounded || extraJumpsValue >= 0);
     bool canCornerCorrect => Physics2D.Raycast(transform.position + edgeRaycastOffset, Vector2.up, topRayCastLength, terrainLayer) && !Physics2D.Raycast(transform.position + innerRaycastOffset, Vector2.up, topRayCastLength, terrainLayer) || Physics2D.Raycast(transform.position - edgeRaycastOffset, Vector2.up, topRayCastLength, terrainLayer) && !Physics2D.Raycast(transform.position - innerRaycastOffset, Vector2.up, topRayCastLength, terrainLayer);
     bool isFalling => rb2d.velocity.y < 0;
 
@@ -112,7 +115,7 @@ public class PlayerMovement : MonoBehaviour
         if (horizontalInput < 0 && isFacingRight)
             Flip();
         //flip when input is positive
-        else if(horizontalInput > 0 && !isFacingRight)
+        else if (horizontalInput > 0 && !isFacingRight)
             Flip();
         groundedRemember -= Time.deltaTime;
         jumpPressedRemember -= Time.deltaTime;
@@ -122,12 +125,14 @@ public class PlayerMovement : MonoBehaviour
             anim.SetBool($"{AnimParamaters.isFalling}", false);
 
             groundedRemember = groundedRememberTime;
+            //extrajumps
+            extraJumpsValue = extraJumps;
         }
         if (Input.GetButtonDown("Jump"))
         {
             jumpPressedRemember = jumpRememberTime;
         }
-       
+
         if (isFalling)
         {
             anim.SetBool($"{AnimParamaters.isFalling}", true);
@@ -135,6 +140,10 @@ public class PlayerMovement : MonoBehaviour
         }
         LedgeClimb();
 
+        //attempt to create double jump by ANDRES BABY
+        //Double Jump function as follows: When in Air can jump one additional time, after completeing will be commented out.
+        //Program needs to know its Grounded, then it needs to know to allow jumping after already jumping, but to only allow that one time.
+        //looking at adrian's code The only thing I have to add is allowing an additional jump, and limiting that jump.
     }
 
     void FixedUpdate()
@@ -151,6 +160,8 @@ public class PlayerMovement : MonoBehaviour
         {
             //This makes me jump higher when moving
             ApplyGroundLinearDrag();
+            //extrajumps
+            extraJumpsValue = extraJumps;
         }
         else
         {
@@ -244,8 +255,13 @@ public class PlayerMovement : MonoBehaviour
         anim.SetBool($"{AnimParamaters.isJumping}", true);
         anim.SetBool($"{AnimParamaters.isFalling}", false);
 
+        //extrajump
+        if (!isGrounded)
+            extraJumpsValue--;
+
         rb2d.velocity = new Vector2(rb2d.velocity.x, 0f);
         rb2d.AddForce(Vector2.up * jumpForce, ForceMode2D.Impulse);
+
     }
     
 
@@ -337,5 +353,13 @@ public class PlayerMovement : MonoBehaviour
             ledgePosBot = wallCheck.position;
         }
     }
+
+
+    //attempt to create double jump by ANDRES BABY
+    //Double Jump function as follows: When in Air can jump one additional time, after completeing will be commented out.
+    //Program needs to know its Grounded, then it needs to know to allow jumping after already jumping, but to only allow that one time.
+
+
+
 
 }
