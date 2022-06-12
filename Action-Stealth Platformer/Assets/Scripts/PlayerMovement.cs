@@ -17,8 +17,7 @@ public class PlayerMovement : MonoBehaviour
     public float fallMultiplier = 8f;
     public float lowJumpFallMultiplier = 5f;
 
-    public Transform wallCheck;
-
+    
     public float jumpRememberTime = .25f;
     public float groundedRememberTime = .25f;
 
@@ -35,6 +34,8 @@ public class PlayerMovement : MonoBehaviour
 
     [Header("Ledge Climb")]
     public Transform ledgeCheck;
+    public Transform wallCheck;
+
 
     public float wallCheckDistance;
 
@@ -58,7 +59,6 @@ public class PlayerMovement : MonoBehaviour
     Vector2 ledgePosBot;
     Vector2 ledgePosStart;
     Vector2 ledgePosEnd;
-
     Vector2 currentPos;
 
     CapsuleCollider2D col;
@@ -165,9 +165,10 @@ public class PlayerMovement : MonoBehaviour
             Jump();
            
         }
-        if (canCornerCorrect && !isGrounded)
-            CornerCorrect(rb2d.velocity.y);
-}
+        //if (canCornerCorrect && !isGrounded)
+            //CornerCorrect(rb2d.velocity.y);
+    }
+
     void LedgeClimb()
     {
         if (isLedgeDetected && !canLedgeClimb && isFalling)
@@ -250,7 +251,6 @@ public class PlayerMovement : MonoBehaviour
     
 
     private void OnDrawGizmos()
-
     {
         //Ground Check
         Gizmos.color = Color.green;
@@ -277,7 +277,6 @@ public class PlayerMovement : MonoBehaviour
         //Implemented new solution for start position
         //Gizmos.DrawLine(ledgePosStart, ledgePosEnd);
         Gizmos.DrawLine(currentPos, ledgePosEnd);
-
     }
 
     void FallMultiplier()
