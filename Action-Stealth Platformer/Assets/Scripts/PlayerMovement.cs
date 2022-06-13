@@ -11,19 +11,19 @@ public class PlayerMovement : MonoBehaviour
     public float maxMoveSpeed;
     public float deceleration;
     public LayerMask terrainLayer;
+
+    [Header("Jumping")]
     public float groundRayCastLength;
     public float jumpForce = 12f;
     public float airLinearDrag = 2.5f;
     public float fallMultiplier = 8f;
     public float lowJumpFallMultiplier = 5f;
-    //Andres double jump attempt
-    public int extraJumps = 1;
-    public int extraJumpsValue;
-
-    public Transform wallCheck;
-
     public float jumpRememberTime = .25f;
     public float groundedRememberTime = .25f;
+    public int extraJumpsValue;
+
+    //Andres double jump attempt
+    int extraJumpsCurrent;
 
 
     [Header("Corner Correction (don't change y or z)")]
@@ -38,14 +38,11 @@ public class PlayerMovement : MonoBehaviour
 
     [Header("Ledge Climb")]
     public Transform ledgeCheck;
+    public Transform wallCheck;
 
     public float wallCheckDistance;
 
     public float ledgeClimbAnimLength;
-
-    //Implemented new solution for start position
-    //public float ledgeClimbStartXOffset;
-    //public float ledgeClimbStartYOffset;
 
     public float ledgeClimbEndXOffset;
     public float ledgeClimbEndYOffset;
@@ -75,7 +72,13 @@ public class PlayerMovement : MonoBehaviour
     float horizontalInput;
     float verticalInput;
     bool isChaningDirection => (rb2d.velocity.x > 0f && horizontalInput < 0f || rb2d.velocity.x < 0 && horizontalInput > 0);
-    bool canJump => jumpPressedRemember > 0 && groundedRemember > 0 && (isGrounded || extraJumpsValue >= 0);
+
+    //bool canJump => jumpPressedRemember > 0 && groundedRemember > 0 && (isGrounded || extraJumpsValue >= 0);
+
+    bool canJump => jumpPressedRemember > 0 && (groundedRemember > 0 || extraJumpsCurrent > 0);
+
+
+    //bool canJump => jumpPressedRemember > 0 && (isGrounded || extraJumpsValue >= 0);
     bool canCornerCorrect => Physics2D.Raycast(transform.position + edgeRaycastOffset, Vector2.up, topRayCastLength, terrainLayer) && !Physics2D.Raycast(transform.position + innerRaycastOffset, Vector2.up, topRayCastLength, terrainLayer) || Physics2D.Raycast(transform.position - edgeRaycastOffset, Vector2.up, topRayCastLength, terrainLayer) && !Physics2D.Raycast(transform.position - innerRaycastOffset, Vector2.up, topRayCastLength, terrainLayer);
     bool isFalling => rb2d.velocity.y < 0;
 
@@ -105,6 +108,7 @@ public class PlayerMovement : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+        Debug.Log($"Extra jumps is {extraJumpsCurrent}");
 
         anim.SetBool($"{AnimParamaters.isGrounded}", isGrounded);
         anim.SetFloat($"{AnimParamaters.horInput}", Mathf.Abs(horizontalInput));
@@ -117,16 +121,17 @@ public class PlayerMovement : MonoBehaviour
         //flip when input is positive
         else if (horizontalInput > 0 && !isFacingRight)
             Flip();
+
         groundedRemember -= Time.deltaTime;
         jumpPressedRemember -= Time.deltaTime;
+
         if (isGrounded)
         {
             anim.SetBool($"{AnimParamaters.isJumping}", false);
             anim.SetBool($"{AnimParamaters.isFalling}", false);
 
             groundedRemember = groundedRememberTime;
-            //extrajumps
-            extraJumpsValue = extraJumps;
+            extraJumpsCurrent = extraJumpsValue;
         }
         if (Input.GetButtonDown("Jump"))
         {
@@ -149,9 +154,6 @@ public class PlayerMovement : MonoBehaviour
     void FixedUpdate()
     {
         CheckSurroundings();
-        //Debug.Log($"Can ledge climb: {canLedgeClimb}");
-        //Debug.Log($"Is touching wall: {isTouchingWall}");
-        //Debug.Log($"Is ledge detected: {isLedgeDetected}");
 
         if (canMove)
             MoveCharacter();
@@ -160,8 +162,6 @@ public class PlayerMovement : MonoBehaviour
         {
             //This makes me jump higher when moving
             ApplyGroundLinearDrag();
-            //extrajumps
-            extraJumpsValue = extraJumps;
         }
         else
         {
@@ -170,15 +170,34 @@ public class PlayerMovement : MonoBehaviour
         }
         if (canJump)
         {
-            //Debug.Log($"{canJump}");
             jumpPressedRemember = 0;
             groundedRemember = 0;
             Jump();
-           
         }
         if (canCornerCorrect && !isGrounded)
             CornerCorrect(rb2d.velocity.y);
-}
+    }
+
+    void Jump()
+    {
+        ApplyAirLinearDrag();
+        anim.SetBool($"{AnimParamaters.isJumping}", true);
+        anim.SetBool($"{AnimParamaters.isFalling}", false);
+
+        //extrajump
+        if (!isGrounded)
+        {
+            if(extraJumpsCurrent > 0)
+                extraJumpsCurrent--;
+            Debug.Log($"Extra jumps is {extraJumpsCurrent}");
+        }
+
+        rb2d.velocity = new Vector2(rb2d.velocity.x, 0f);
+        rb2d.AddForce(Vector2.up * jumpForce, ForceMode2D.Impulse);
+
+    }
+
+
     void LedgeClimb()
     {
         if (isLedgeDetected && !canLedgeClimb && isFalling)
@@ -189,17 +208,12 @@ public class PlayerMovement : MonoBehaviour
 
             currentPos = transform.position;
 
-            //Implemented new solution for start position
             if (isFacingRight)
             {
-                //ledgePosStart = new Vector2(Mathf.Floor(ledgePosBot.x + wallCheckDistance) - ledgeClimbStartXOffset, Mathf.Floor(ledgePosBot.y) + ledgeClimbStartYOffset);
                 ledgePosEnd = new Vector2(Mathf.Floor(ledgePosBot.x + wallCheckDistance) + ledgeClimbEndXOffset, Mathf.Floor(ledgePosBot.y) + ledgeClimbEndYOffset);
-
-
             }
             else
             {
-                //ledgePosStart = new Vector2(Mathf.Ceil(ledgePosBot.x - wallCheckDistance) + ledgeClimbStartXOffset, Mathf.Floor(ledgePosBot.y) + ledgeClimbStartYOffset);
                 ledgePosEnd = new Vector2(Mathf.Ceil(ledgePosBot.x - wallCheckDistance) - ledgeClimbEndXOffset, Mathf.Floor(ledgePosBot.y) + ledgeClimbEndYOffset);
             }
 
@@ -248,22 +262,6 @@ public class PlayerMovement : MonoBehaviour
     {
         rb2d.drag = airLinearDrag;
     }
-
-    void Jump()
-    {
-        ApplyAirLinearDrag();
-        anim.SetBool($"{AnimParamaters.isJumping}", true);
-        anim.SetBool($"{AnimParamaters.isFalling}", false);
-
-        //extrajump
-        if (!isGrounded)
-            extraJumpsValue--;
-
-        rb2d.velocity = new Vector2(rb2d.velocity.x, 0f);
-        rb2d.AddForce(Vector2.up * jumpForce, ForceMode2D.Impulse);
-
-    }
-    
 
     private void OnDrawGizmos()
 

@@ -547,13 +547,14 @@ MonoBehaviour:
   airLinearDrag: 2.5
   fallMultiplier: 7
   lowJumpFallMultiplier: 5
-  wallCheck: {fileID: 431056290}
   jumpRememberTime: 0.25
   groundedRememberTime: 0.15
+  extraJumpsValue: 1
   topRayCastLength: 0.85
   edgeRaycastOffset: {x: 0.4, y: 0, z: 0}
   innerRaycastOffset: {x: 0.18, y: 0, z: 0}
   ledgeCheck: {fileID: 1895634971}
+  wallCheck: {fileID: 431056290}
   wallCheckDistance: 0.3
   ledgeClimbAnimLength: 0.75
   ledgeClimbEndXOffset: 1
@@ -1146,7 +1147,7 @@ MonoBehaviour:
     ModeOverride: 0
     LensShift: {x: 0, y: 0}
     GateFit: 2
-    m_SensorSize: {x: 2.2528148, y: 1}
+    m_SensorSize: {x: 2.1213872, y: 1}
   m_Transitions:
     m_BlendHint: 0
     m_InheritPosition: 0
