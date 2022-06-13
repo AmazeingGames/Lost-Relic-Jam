@@ -123,6 +123,37 @@ NavMeshSettings:
     debug:
       m_Flags: 0
   m_NavMeshData: {fileID: 0}
+--- !u!1 &177942918
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 177942919}
+  m_Layer: 7
+  m_Name: WallCheck
+  m_TagString: Untagged
+  m_Icon: {fileID: -5442936267250999957, guid: 0000000000000000d000000000000000, type: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &177942919
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 177942918}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0.3, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1051600015}
+  m_RootOrder: 1
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &222986088
 GameObject:
   m_ObjectHideFlags: 0
@@ -410,7 +441,6 @@ GameObject:
   - component: {fileID: 325259191}
   - component: {fileID: 325259192}
   - component: {fileID: 325259193}
-  - component: {fileID: 325259194}
   m_Layer: 8
   m_Name: Player
   m_TagString: Untagged
@@ -536,12 +566,15 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 68a2143fb32788944a1e9ee519282c5f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  moveAcceleration: 75
-  maxMoveSpeed: 8
-  deceleration: 10
+  ledgeCheck: {fileID: 1895634971}
+  wallCheck: {fileID: 431056290}
+  wallCheckDistance: 0.3
   terrainLayer:
     serializedVersion: 2
     m_Bits: 64
+  moveAcceleration: 75
+  maxMoveSpeed: 8
+  deceleration: 10
   groundRayCastLength: 0.2
   jumpForce: 10
   airLinearDrag: 2.5
@@ -552,9 +585,6 @@ MonoBehaviour:
   topRayCastLength: 0.85
   edgeRaycastOffset: {x: 0.4, y: 0, z: 0}
   innerRaycastOffset: {x: 0.18, y: 0, z: 0}
-  ledgeCheck: {fileID: 1895634971}
-  wallCheck: {fileID: 431056290}
-  wallCheckDistance: 0.3
   ledgeClimbAnimLength: 0.75
   ledgeClimbEndXOffset: 1
   ledgeClimbEndYOffset: 1
@@ -609,21 +639,6 @@ Animator:
   m_HasTransformHierarchy: 1
   m_AllowConstantClipSamplingOptimization: 1
   m_KeepAnimatorControllerStateOnDisable: 0
---- !u!114 &325259194
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 325259184}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: c3959230e1109304e8e8eea3d1b7f4c7, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  lightPlatform: {fileID: 0}
-  player: {fileID: 0}
-  playerMovement: {fileID: 0}
 --- !u!1 &402970375
 GameObject:
   m_ObjectHideFlags: 0
@@ -1177,10 +1192,12 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1051600013}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -2.03, y: -1.91, z: 0}
+  m_LocalPosition: {x: 8.49, y: -1.91, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
-  m_Children: []
+  m_Children:
+  - {fileID: 1742875707}
+  - {fileID: 177942919}
   m_Father: {fileID: 0}
   m_RootOrder: 6
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -1233,10 +1250,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3f2bf853160b22345859b80255b8fdfe, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  ledgeCheck: {fileID: 0}
-  wallCheck: {fileID: 0}
-  wallCheckDistance: 0
-  moveSpeed: 5
+  ledgeCheck: {fileID: 1742875707}
+  wallCheck: {fileID: 177942919}
+  wallCheckDistance: 0.3
+  terrainLayer:
+    serializedVersion: 2
+    m_Bits: 64
 --- !u!1 &1263276757
 GameObject:
   m_ObjectHideFlags: 0
@@ -1283,7 +1302,7 @@ MonoBehaviour:
     ModeOverride: 0
     LensShift: {x: 0, y: 0}
     GateFit: 2
-    m_SensorSize: {x: 2.1173077, y: 1}
+    m_SensorSize: {x: 2.1213872, y: 1}
   m_Transitions:
     m_BlendHint: 0
     m_InheritPosition: 0
@@ -2066,6 +2085,37 @@ PrefabInstance:
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 7594f4ca66ce9094887d8512055c6c94, type: 3}
+--- !u!1 &1742875706
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1742875707}
+  m_Layer: 7
+  m_Name: LedgeCheck
+  m_TagString: Untagged
+  m_Icon: {fileID: 3443629218296621865, guid: 0000000000000000d000000000000000, type: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1742875707
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1742875706}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0.3, y: 0.258, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1051600015}
+  m_RootOrder: 0
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1809562248
 GameObject:
   m_ObjectHideFlags: 3
@@ -2199,7 +2249,6 @@ GameObject:
   - component: {fileID: 1921673856}
   - component: {fileID: 1921673860}
   - component: {fileID: 1921673861}
-  - component: {fileID: 1921673862}
   m_Layer: 0
   m_Name: Enemy
   m_TagString: Untagged
@@ -2355,18 +2404,6 @@ BoxCollider2D:
   serializedVersion: 2
   m_Size: {x: 1.0822325, y: 0.8395958}
   m_EdgeRadius: 0
---- !u!114 &1921673862
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1921673855}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: b36da5b29e1ac834587d1f1ee340a4f2, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
 --- !u!4 &2034202385 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 8603638485817965728, guid: 7594f4ca66ce9094887d8512055c6c94, type: 3}

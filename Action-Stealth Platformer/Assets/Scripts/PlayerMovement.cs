@@ -2,7 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class PlayerMovement : MonoBehaviour
+public class PlayerMovement : LedgeDetection
 {
     Rigidbody2D rb2d;
     Animator anim;
@@ -10,7 +10,6 @@ public class PlayerMovement : MonoBehaviour
     public float moveAcceleration;
     public float maxMoveSpeed;
     public float deceleration;
-    public LayerMask terrainLayer;
     public float groundRayCastLength;
     public float jumpForce = 12f;
     public float airLinearDrag = 2.5f;
@@ -33,12 +32,6 @@ public class PlayerMovement : MonoBehaviour
     bool isFacingRight = true;
 
     [Header("Ledge Climb")]
-    public Transform ledgeCheck;
-    public Transform wallCheck;
-
-
-    public float wallCheckDistance;
-
     public float ledgeClimbAnimLength;
 
     //Implemented new solution for start position
@@ -50,17 +43,7 @@ public class PlayerMovement : MonoBehaviour
 
     public Vector2 startAdjustment;
 
-    bool isTouchingWall;
-    bool isTouchingLedge;
-
     bool canLedgeClimb = false;
-    bool isLedgeDetected;
-
-    Vector2 ledgePosBot;
-    Vector2 ledgePosStart;
-    Vector2 ledgePosEnd;
-    Vector2 currentPos;
-
     CapsuleCollider2D col;
 
     enum AnimStates { Idle, Run, Jump, Fall, Landing, LedgeClimb }
