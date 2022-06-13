@@ -50,7 +50,8 @@ public class PlayerMovement : LedgeDetection
     enum AnimParamaters { isGrounded, horInput, isJumping, isFalling, isLedgeClimbing }
 
     private Vector3 groundRaycastOffset;
-    bool isGrounded => Physics2D.Raycast(transform.position + groundRaycastOffset, Vector2.down, groundRayCastLength, terrainLayer) || Physics2D.Raycast(transform.position - groundRaycastOffset, Vector2.down, groundRayCastLength, terrainLayer);
+
+    public bool isGrounded { get => Physics2D.Raycast(transform.position + groundRaycastOffset, Vector2.down, groundRayCastLength, terrainLayer) || Physics2D.Raycast(transform.position - groundRaycastOffset, Vector2.down, groundRayCastLength, terrainLayer); }
 
     float horizontalInput;
     float verticalInput;
