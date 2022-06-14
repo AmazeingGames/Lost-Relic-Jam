@@ -6,17 +6,17 @@ public class ShadowMagic : MonoBehaviour
 {
     public GameObject player;
     public GameObject shadowHandRef;
-
-    ShadowHand shadowHandScript;
+    private LedgeDetection ledgeDetection;
     PlayerMovement playerMovement;
     
-    GameObject shadowHandUse;
-    CircleCollider2D circCollider;
-    Rigidbody2D rb2d;
+    GameObject shadowhandObject;
+    CircleCollider2D circColliderShadowhand;
+    Rigidbody2D rb2dShadowhand;
 
     Vector2 playerPosition;
     bool isGrounded;
 
+    public float upwardforceShadowhand;
     // Start is called before the first frame update
 
     /* Shadow hand grapplhook:
@@ -31,16 +31,20 @@ public class ShadowMagic : MonoBehaviour
      */
     void Start()
     {
-        circCollider = GetComponent<CircleCollider2D>();
-        rb2d = GetComponent<Rigidbody2D>();
         playerMovement = player.GetComponent<PlayerMovement>();
-        shadowHandScript = shadowHandRef.GetComponent<ShadowHand>();
 
-        if (shadowHandUse == null && shadowHandRef != null)
+        if (shadowhandObject == null && shadowHandRef != null)
         {
-            shadowHandUse = Instantiate(shadowHandRef);
-            shadowHandUse.SetActive(false);
+            shadowhandObject = Instantiate(shadowHandRef);
+            shadowhandObject.SetActive(false);
         }
+
+        circColliderShadowhand = shadowhandObject.GetComponent<CircleCollider2D>();
+        rb2dShadowhand = shadowhandObject.GetComponent<Rigidbody2D>(); 
+
+        Debug.Log("ShadowhandObject null: " + (shadowhandObject == null));
+
+        ledgeDetection = shadowhandObject.GetComponent<LedgeDetection>();
     }
 
     // Update is called once per frame
@@ -48,48 +52,68 @@ public class ShadowMagic : MonoBehaviour
     {
         playerPosition = player.transform.position;
 
-        if (Input.GetMouseButtonDown(0))
+        if (Input.GetMouseButtonDown(0) && playerMovement.isTouchingWall)
         {
+
             Debug.Log("Summon shadowhand");
             SummonShadowHand(playerPosition);
         }
-        if (shadowHandUse.activeSelf == true && Input.GetMouseButtonUp(0))
+        if (shadowhandObject.activeSelf == true && Input.GetMouseButtonUp(0) && !ledgeDetection.isLedgeDetected)
         {
             Debug.Log("Started shadowhand recall");
-            StartCoroutine(RecallShadowHand(.5f));
+            StartCoroutine(RecallTo(.5f, true));
         }
-
     }
-
     void FixedUpdate()
     {
         isGrounded = playerMovement.isGrounded;
+        if (ledgeDetection.isLedgeDetected)
+        {
+            rb2dShadowhand.velocity = Vector2.zero;
+            StartCoroutine(RecallTo(.5f, false));
+        }
+        else
+        {
+            rb2dShadowhand.velocity = new Vector2(rb2dShadowhand.velocity.x, upwardforceShadowhand);
+        }
+
+        Debug.Log("ledge dectect" + (ledgeDetection.isLedgeDetected));
     }
 
     GameObject SummonShadowHand(Vector2 position)
     {
-        if (shadowHandUse.activeSelf == false)
+        if (shadowhandObject.activeSelf == false)
         {
-            shadowHandUse.SetActive(true);
-            shadowHandUse.transform.position = position;
-            return shadowHandUse;
+            shadowhandObject.SetActive(true);
+            shadowhandObject.transform.position = position;
+            return shadowhandObject;
         }
         return null;
     }
 
-    IEnumerator RecallShadowHand(float duration)
+    IEnumerator RecallTo(float duration, bool goingToPlayer)
     {
-        var startPosition = shadowHandUse.transform.position;
+        var startPosition = shadowhandObject.transform.position;
         var percentComplete = .0f;
 
         while (percentComplete < 1.0f)
         {
             percentComplete += Time.deltaTime / duration;
-
-            shadowHandUse.transform.position = Vector2.Lerp(startPosition, playerPosition, percentComplete);
-
+    
+            if (goingToPlayer)
+                shadowhandObject.transform.position = Vector2.Lerp(startPosition, playerPosition, percentComplete);
+            else if (playerMovement.canLedgeClimb == false && goingToPlayer == false)
+            {
+                player.transform.position = Vector2.Lerp(playerPosition, startPosition, percentComplete);
+            }
+            
             yield return null;
+
+            Debug.Log("Stop");
         }
-        shadowHandUse.SetActive(false);
+
+        playerMovement.canMove = true;
+        ledgeDetection.isLedgeDetected = false;
+        shadowhandObject.SetActive(false);
     }
 }

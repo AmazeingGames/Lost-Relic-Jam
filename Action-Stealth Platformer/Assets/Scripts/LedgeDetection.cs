@@ -5,14 +5,15 @@ using UnityEngine;
 
 public class LedgeDetection : MonoBehaviour
 { 
-    public Transform ledgeCheck;
-    public Transform wallCheck;
+    public GameObject ledgeCheck;
+    public GameObject wallCheck;
     public float wallCheckDistance = .3f;
     public LayerMask terrainLayer;
+    
 
-    protected bool isTouchingWall;
+    public bool isTouchingWall { get; protected set; }
     protected bool isTouchingLedge;
-    protected bool isLedgeDetected;
+    public bool isLedgeDetected;
 
     protected Vector2 ledgePosBot;
     protected Vector2 ledgePosStart;
@@ -25,16 +26,20 @@ public class LedgeDetection : MonoBehaviour
         CheckSurroundings();
     }
 
-    bool CheckSurroundings()
+    protected bool CheckSurroundings()
     {
-        isTouchingWall = Physics2D.Raycast(wallCheck.position, transform.right, wallCheckDistance, terrainLayer);
-        isTouchingLedge = Physics2D.Raycast(ledgeCheck.position, transform.right, wallCheckDistance, terrainLayer);
+        isTouchingWall = Physics2D.Raycast(wallCheck.transform.position, transform.right, wallCheckDistance, terrainLayer);
+        isTouchingLedge = Physics2D.Raycast(ledgeCheck.transform.position, transform.right, wallCheckDistance, terrainLayer);
+        return IsTouchingLedge();
+    }
 
+    protected virtual bool IsTouchingLedge()
+    {
         if (isTouchingWall && !isTouchingLedge && !isLedgeDetected)
         {
             Debug.Log("We are touching a ledge");
             isLedgeDetected = true;
-            ledgePosBot = wallCheck.position;
+            ledgePosBot = wallCheck.transform.position;
             return true;
         }
         return false;

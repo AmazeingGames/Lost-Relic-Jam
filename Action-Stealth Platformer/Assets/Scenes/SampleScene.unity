@@ -536,12 +536,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 68a2143fb32788944a1e9ee519282c5f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  ledgeCheck: {fileID: 1895634971}
-  wallCheck: {fileID: 431056290}
+  ledgeCheck: {fileID: 1895634970}
+  wallCheck: {fileID: 431056289}
   wallCheckDistance: 0.3
   terrainLayer:
     serializedVersion: 2
     m_Bits: 64
+  isLedgeDetected: 0
   moveAcceleration: 75
   maxMoveSpeed: 8
   deceleration: 10
@@ -559,6 +560,8 @@ MonoBehaviour:
   ledgeClimbEndXOffset: 1
   ledgeClimbEndYOffset: 1
   startAdjustment: {x: 0, y: -0.6}
+  canMove: 1
+  canFlip: 1
 --- !u!114 &325259192
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -622,7 +625,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   player: {fileID: 325259184}
-  shadowHandRef: {fileID: 2172152321740542336, guid: ccb1ccade9dcde145a9bcba9e24270d5, type: 3}
+  shadowHandRef: {fileID: 4630213828813751060, guid: ec812a5a76cd96e44b7bfe9ca266839a, type: 3}
+  upwardforceShadowhand: 5
 --- !u!1 &402970375
 GameObject:
   m_ObjectHideFlags: 0
@@ -1142,7 +1146,7 @@ MonoBehaviour:
     ModeOverride: 0
     LensShift: {x: 0, y: 0}
     GateFit: 2
-    m_SensorSize: {x: 2.1213872, y: 1}
+    m_SensorSize: {x: 2.2528148, y: 1}
   m_Transitions:
     m_BlendHint: 0
     m_InheritPosition: 0

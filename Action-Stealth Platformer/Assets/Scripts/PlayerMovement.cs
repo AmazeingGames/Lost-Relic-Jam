@@ -6,7 +6,7 @@ public class PlayerMovement : LedgeDetection
 {
     Rigidbody2D rb2d;
     Animator anim;
-    
+
     public float moveAcceleration;
     public float maxMoveSpeed;
     public float deceleration;
@@ -16,7 +16,7 @@ public class PlayerMovement : LedgeDetection
     public float fallMultiplier = 8f;
     public float lowJumpFallMultiplier = 5f;
 
-    
+
     public float jumpRememberTime = .25f;
     public float groundedRememberTime = .25f;
 
@@ -43,7 +43,7 @@ public class PlayerMovement : LedgeDetection
 
     public Vector2 startAdjustment;
 
-    bool canLedgeClimb = false;
+    public bool canLedgeClimb { get; private set; } = false;
     CapsuleCollider2D col;
 
     enum AnimStates { Idle, Run, Jump, Fall, Landing, LedgeClimb }
@@ -60,8 +60,8 @@ public class PlayerMovement : LedgeDetection
     bool canCornerCorrect => Physics2D.Raycast(transform.position + edgeRaycastOffset, Vector2.up, topRayCastLength, terrainLayer) && !Physics2D.Raycast(transform.position + innerRaycastOffset, Vector2.up, topRayCastLength, terrainLayer) || Physics2D.Raycast(transform.position - edgeRaycastOffset, Vector2.up, topRayCastLength, terrainLayer) && !Physics2D.Raycast(transform.position - innerRaycastOffset, Vector2.up, topRayCastLength, terrainLayer);
     bool isFalling => rb2d.velocity.y < 0;
 
-    bool canMove = true;
-    bool canFlip = true;
+    public bool canMove = true;
+    public bool canFlip = true;
 
 
 
@@ -123,13 +123,13 @@ public class PlayerMovement : LedgeDetection
 
     void FixedUpdate()
     {
-        CheckSurroundings();
-        //Debug.Log($"Can ledge climb: {canLedgeClimb}");
-        //Debug.Log($"Is touching wall: {isTouchingWall}");
-        //Debug.Log($"Is ledge detected: {isLedgeDetected}");
+          CheckSurroundings();
+            //Debug.Log($"Can ledge climb: {canLedgeClimb}");
+            //Debug.Log($"Is touching wall: {isTouchingWall}");
+            //Debug.Log($"Is ledge detected: {isLedgeDetected}");
 
-        if (canMove)
-            MoveCharacter();
+            if (canMove)
+                MoveCharacter();
        
         if (isGrounded)
         {
@@ -308,17 +308,12 @@ public class PlayerMovement : LedgeDetection
         }
     }
 
-    void CheckSurroundings()
+    protected override bool IsTouchingLedge()
     {
-        isTouchingWall = Physics2D.Raycast(wallCheck.position, transform.right, wallCheckDistance, terrainLayer);
-        isTouchingLedge = Physics2D.Raycast(ledgeCheck.position, transform.right, wallCheckDistance, terrainLayer);
-
-        if (isTouchingWall && !isTouchingLedge && !isLedgeDetected && isFalling)
+        if (isFalling)
         {
-            Debug.Log("We are touching a ledge");
-            isLedgeDetected = true;
-            ledgePosBot = wallCheck.position;
-        }
+             return base.IsTouchingLedge();
+          }
+          else return false;
     }
-
 }
