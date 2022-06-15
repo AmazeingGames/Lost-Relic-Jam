@@ -12,13 +12,13 @@ public class LedgeDetection : MonoBehaviour
     
 
     public bool isTouchingWall { get; protected set; }
-    protected bool isTouchingLedge;
     public bool isLedgeDetected;
 
-    protected Vector2 ledgePosBot;
-    protected Vector2 ledgePosStart;
-    protected Vector2 ledgePosEnd;
-    protected Vector2 currentPos;
+    protected bool isTouchingLedge;
+    public Vector2 ledgePosBot { get; protected set; }
+    public Vector2 ledgePosStart;
+    public Vector2 ledgePosEnd;
+    public Vector2 currentPos;
 
 
     void FixedUpdate()

@@ -144,6 +144,10 @@ MonoBehaviour:
   terrainLayer:
     serializedVersion: 2
     m_Bits: 64
+  isLedgeDetected: 0
+  ledgePosStart: {x: 0, y: 0}
+  ledgePosEnd: {x: 0, y: 0}
+  currentPos: {x: 0, y: 0}
 --- !u!1 &4630213829555295775
 GameObject:
   m_ObjectHideFlags: 0

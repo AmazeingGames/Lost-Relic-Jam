@@ -4,6 +4,10 @@ using UnityEngine;
 
 public class PlayerMovement : LedgeDetection
 {
+    LedgeDetection shadowLedgeDetectionScript;
+    ShadowMagic shadowMagicScript;
+    GameObject shadowhandObject;
+
     Rigidbody2D rb2d;
     Animator anim;
 
@@ -41,7 +45,12 @@ public class PlayerMovement : LedgeDetection
     public float ledgeClimbEndXOffset;
     public float ledgeClimbEndYOffset;
 
-    public Vector2 startAdjustment;
+    public Vector2 ledgeClimbStartAdjustment;
+
+    public float shadowLedgeClimbEndXOffset;
+    public float shadowLedgeClimbEndYOffset;
+
+    public Vector2 shadowLedgeClimbStartAdjustment;
 
     public bool canLedgeClimb { get; private set; } = false;
     CapsuleCollider2D col;
@@ -81,6 +90,10 @@ public class PlayerMovement : LedgeDetection
         rb2d = GetComponent<Rigidbody2D>();
         anim = GetComponent<Animator>();
         col = GetComponent<CapsuleCollider2D>();
+
+        shadowMagicScript = GetComponent<ShadowMagic>();
+        shadowhandObject = shadowMagicScript.shadowhandObject;
+        shadowLedgeDetectionScript = shadowhandObject.GetComponent<LedgeDetection>();
     }
 
     // Update is called once per frame
@@ -155,7 +168,8 @@ public class PlayerMovement : LedgeDetection
 
     void LedgeClimb()
     {
-        if (isLedgeDetected && !canLedgeClimb && isFalling)
+        //if (isLedgeDetected && !canLedgeClimb)
+        if ((isLedgeDetected && !canLedgeClimb) || shadowLedgeDetectionScript.isLedgeDetected)
         {
             canLedgeClimb = true;
             canMove = false;
@@ -164,25 +178,41 @@ public class PlayerMovement : LedgeDetection
             currentPos = transform.position;
 
             //Implemented new solution for start position
-            if (isFacingRight)
+            if (!shadowLedgeDetectionScript.isLedgeDetected)
             {
-                //ledgePosStart = new Vector2(Mathf.Floor(ledgePosBot.x + wallCheckDistance) - ledgeClimbStartXOffset, Mathf.Floor(ledgePosBot.y) + ledgeClimbStartYOffset);
-                ledgePosEnd = new Vector2(Mathf.Floor(ledgePosBot.x + wallCheckDistance) + ledgeClimbEndXOffset, Mathf.Floor(ledgePosBot.y) + ledgeClimbEndYOffset);
-
-
+                if (isFacingRight)
+                {
+                    //ledgePosStart = new Vector2(Mathf.Floor(ledgePosBot.x + wallCheckDistance) - ledgeClimbStartXOffset, Mathf.Floor(ledgePosBot.y) + ledgeClimbStartYOffset);
+                    ledgePosEnd = new Vector2(Mathf.Floor(ledgePosBot.x + wallCheckDistance) + ledgeClimbEndXOffset, Mathf.Floor(ledgePosBot.y) + ledgeClimbEndYOffset);
+                }
+                else
+                {
+                    //ledgePosStart = new Vector2(Mathf.Ceil(ledgePosBot.x - wallCheckDistance) + ledgeClimbStartXOffset, Mathf.Floor(ledgePosBot.y) + ledgeClimbStartYOffset);
+                    ledgePosEnd = new Vector2(Mathf.Ceil(ledgePosBot.x - wallCheckDistance) - ledgeClimbEndXOffset, Mathf.Floor(ledgePosBot.y) + ledgeClimbEndYOffset);
+                }
             }
             else
-            {
+            { 
+                if (isFacingRight)
+                {
+                //ledgePosStart = new Vector2(Mathf.Floor(ledgePosBot.x + wallCheckDistance) - ledgeClimbStartXOffset, Mathf.Floor(ledgePosBot.y) + ledgeClimbStartYOffset);
+                ledgePosEnd = new Vector2(Mathf.Floor(shadowLedgeDetectionScript.ledgePosBot.x + wallCheckDistance) + shadowLedgeClimbEndXOffset, Mathf.Floor(shadowLedgeDetectionScript.ledgePosBot.y) + shadowLedgeClimbEndYOffset);
+                }
+                else
+                {
                 //ledgePosStart = new Vector2(Mathf.Ceil(ledgePosBot.x - wallCheckDistance) + ledgeClimbStartXOffset, Mathf.Floor(ledgePosBot.y) + ledgeClimbStartYOffset);
-                ledgePosEnd = new Vector2(Mathf.Ceil(ledgePosBot.x - wallCheckDistance) - ledgeClimbEndXOffset, Mathf.Floor(ledgePosBot.y) + ledgeClimbEndYOffset);
+                ledgePosEnd = new Vector2(Mathf.Ceil(shadowLedgeDetectionScript.ledgePosBot.x - wallCheckDistance) - shadowLedgeClimbEndXOffset, Mathf.Floor(shadowLedgeDetectionScript.ledgePosBot.y) + shadowLedgeClimbEndYOffset);
+                }
             }
-
             anim.SetBool($"{AnimParamaters.isLedgeClimbing}", canLedgeClimb);
             StartCoroutine(FinishLedgeClimb());
         }
-        
-         if(canLedgeClimb)
-           transform.position = currentPos + startAdjustment;
+
+         if(canLedgeClimb && !shadowLedgeDetectionScript.isLedgeDetected)
+           transform.position = currentPos + ledgeClimbStartAdjustment;
+         else if (canLedgeClimb && shadowLedgeDetectionScript.isLedgeDetected)
+            transform.position = shadowLedgeDetectionScript.currentPos + shadowLedgeClimbStartAdjustment;
+
 
     }
 
@@ -191,11 +221,13 @@ public class PlayerMovement : LedgeDetection
         yield return new WaitForSeconds(ledgeClimbAnimLength);
         Debug.Log("Finish ledge climb");
         canLedgeClimb = false;
-        transform.position = ledgePosEnd;
         canMove = true;
         canFlip = true;
         isLedgeDetected = false;
         anim.SetBool($"{AnimParamaters.isLedgeClimbing}", canLedgeClimb);
+        transform.position = ledgePosEnd;
+        //shadowLedgeDetectionScript.isLedgeDetected = false;
+
     }
 
     void MoveCharacter()

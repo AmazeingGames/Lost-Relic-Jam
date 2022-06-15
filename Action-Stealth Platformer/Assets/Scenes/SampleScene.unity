@@ -426,7 +426,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 325259184}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 1.16, y: -3.41, z: 0}
+  m_LocalPosition: {x: 1.19, y: -3.281, z: 0}
   m_LocalScale: {x: 2, y: 2, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -521,8 +521,8 @@ CapsuleCollider2D:
   m_IsTrigger: 0
   m_UsedByEffector: 0
   m_UsedByComposite: 0
-  m_Offset: {x: 0.023027765, y: 0.12353928}
-  m_Size: {x: 0.3370984, y: 0.24952678}
+  m_Offset: {x: 0.0010737926, y: 0.12353928}
+  m_Size: {x: 0.3494216, y: 0.24952827}
   m_Direction: 1
 --- !u!114 &325259191
 MonoBehaviour:
@@ -543,6 +543,9 @@ MonoBehaviour:
     serializedVersion: 2
     m_Bits: 64
   isLedgeDetected: 0
+  ledgePosStart: {x: 0, y: 0}
+  ledgePosEnd: {x: 0, y: 0}
+  currentPos: {x: 0, y: 0}
   moveAcceleration: 75
   maxMoveSpeed: 8
   deceleration: 10
@@ -554,12 +557,15 @@ MonoBehaviour:
   jumpRememberTime: 0.25
   groundedRememberTime: 0.15
   topRayCastLength: 0.85
-  edgeRaycastOffset: {x: 0.4, y: 0, z: 0}
-  innerRaycastOffset: {x: 0.18, y: 0, z: 0}
+  edgeRaycastOffset: {x: 0.35, y: 0, z: 0}
+  innerRaycastOffset: {x: 0.15, y: 0, z: 0}
   ledgeClimbAnimLength: 0.75
   ledgeClimbEndXOffset: 1
   ledgeClimbEndYOffset: 1
-  startAdjustment: {x: 0, y: -0.6}
+  ledgeClimbStartAdjustment: {x: 0, y: -0.7}
+  shadowLedgeClimbEndXOffset: 1
+  shadowLedgeClimbEndYOffset: 1
+  shadowLedgeClimbStartAdjustment: {x: 0, y: 0}
   canMove: 1
   canFlip: 1
 --- !u!114 &325259192
@@ -881,7 +887,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 431056289}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0.136, y: 0.13, z: 0}
+  m_LocalPosition: {x: 0.136, y: 0.116, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -998,7 +1004,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 519420028}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 1.16, y: -3.41, z: -10}
+  m_LocalPosition: {x: 1.19, y: -3.281, z: -10}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -1146,7 +1152,7 @@ MonoBehaviour:
     ModeOverride: 0
     LensShift: {x: 0, y: 0}
     GateFit: 2
-    m_SensorSize: {x: 2.2528148, y: 1}
+    m_SensorSize: {x: 1.9614644, y: 1}
   m_Transitions:
     m_BlendHint: 0
     m_InheritPosition: 0
@@ -1163,7 +1169,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1263276757}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 1.16, y: -3.41, z: -10}
+  m_LocalPosition: {x: 1.19, y: -3.281, z: -10}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:

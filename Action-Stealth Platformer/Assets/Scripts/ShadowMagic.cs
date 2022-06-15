@@ -6,14 +6,16 @@ public class ShadowMagic : MonoBehaviour
 {
     public GameObject player;
     public GameObject shadowHandRef;
-    private LedgeDetection ledgeDetection;
+    private LedgeDetection ledgeDetectionScript;
     PlayerMovement playerMovement;
     
-    GameObject shadowhandObject;
+    public GameObject shadowhandObject { get; private set; }
     CircleCollider2D circColliderShadowhand;
     Rigidbody2D rb2dShadowhand;
 
     Vector2 playerPosition;
+
+    bool isHandRecalling;
     bool isGrounded;
 
     public float upwardforceShadowhand;
@@ -29,7 +31,7 @@ public class ShadowMagic : MonoBehaviour
      *      Lerps grapplehook to player
      *      Once grapple reaches playe becomes disabled
      */
-    void Start()
+    void Awake()
     {
         playerMovement = player.GetComponent<PlayerMovement>();
 
@@ -44,7 +46,7 @@ public class ShadowMagic : MonoBehaviour
 
         Debug.Log("ShadowhandObject null: " + (shadowhandObject == null));
 
-        ledgeDetection = shadowhandObject.GetComponent<LedgeDetection>();
+        ledgeDetectionScript = shadowhandObject.GetComponent<LedgeDetection>();
     }
 
     // Update is called once per frame
@@ -54,36 +56,37 @@ public class ShadowMagic : MonoBehaviour
 
         if (Input.GetMouseButtonDown(0) && playerMovement.isTouchingWall)
         {
-
             Debug.Log("Summon shadowhand");
             SummonShadowHand(playerPosition);
         }
-        if (shadowhandObject.activeSelf == true && Input.GetMouseButtonUp(0) && !ledgeDetection.isLedgeDetected)
+        if (shadowhandObject.activeSelf == true && Input.GetMouseButtonUp(0) && !ledgeDetectionScript.isLedgeDetected)
         {
             Debug.Log("Started shadowhand recall");
-            StartCoroutine(RecallTo(.5f, true));
+            StartCoroutine(RecallToPlayer(.5f, true));
         }
     }
     void FixedUpdate()
     {
         isGrounded = playerMovement.isGrounded;
-        if (ledgeDetection.isLedgeDetected)
+        if (ledgeDetectionScript.isLedgeDetected)
         {
             rb2dShadowhand.velocity = Vector2.zero;
-            StartCoroutine(RecallTo(.5f, false));
+            StartCoroutine(RecallToPlayer(.5f, false));
         }
         else
         {
             rb2dShadowhand.velocity = new Vector2(rb2dShadowhand.velocity.x, upwardforceShadowhand);
         }
-
-        Debug.Log("ledge dectect" + (ledgeDetection.isLedgeDetected));
+        ledgeDetectionScript.currentPos = shadowhandObject.transform.position;
     }
 
     GameObject SummonShadowHand(Vector2 position)
     {
         if (shadowhandObject.activeSelf == false)
         {
+            playerMovement.canMove = false;
+            playerMovement.canFlip = false;
+
             shadowhandObject.SetActive(true);
             shadowhandObject.transform.position = position;
             return shadowhandObject;
@@ -91,7 +94,7 @@ public class ShadowMagic : MonoBehaviour
         return null;
     }
 
-    IEnumerator RecallTo(float duration, bool goingToPlayer)
+    IEnumerator RecallToPlayer(float duration, bool goingToPlayer)
     {
         var startPosition = shadowhandObject.transform.position;
         var percentComplete = .0f;
@@ -101,19 +104,26 @@ public class ShadowMagic : MonoBehaviour
             percentComplete += Time.deltaTime / duration;
     
             if (goingToPlayer)
-                shadowhandObject.transform.position = Vector2.Lerp(startPosition, playerPosition, percentComplete);
-            else if (playerMovement.canLedgeClimb == false && goingToPlayer == false)
             {
-                player.transform.position = Vector2.Lerp(playerPosition, startPosition, percentComplete);
+                ledgeDetectionScript.enabled = false;
+
+                playerMovement.canMove = true;
+                playerMovement.canFlip = true;
+                isHandRecalling = true;
+
+                shadowhandObject.transform.position = Vector2.Lerp(startPosition, playerPosition, percentComplete);
             }
+            //else if(!goingToPlayer && ledgeDetectionScript.isLedgeDetected)
+                //player.transform.position = Vector2.Lerp(playerPosition, startPosition, percentComplete);
             
             yield return null;
-
-            Debug.Log("Stop");
         }
 
         playerMovement.canMove = true;
-        ledgeDetection.isLedgeDetected = false;
+        playerMovement.canFlip = true;
+        ledgeDetectionScript.isLedgeDetected = false;
         shadowhandObject.SetActive(false);
+        isHandRecalling = false;
+        ledgeDetectionScript.enabled = true;
     }
 }
