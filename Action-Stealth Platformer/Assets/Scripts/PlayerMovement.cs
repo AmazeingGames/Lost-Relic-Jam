@@ -50,8 +50,6 @@ public class PlayerMovement : LedgeDetection
     public float shadowLedgeClimbEndXOffset;
     public float shadowLedgeClimbEndYOffset;
 
-    public Vector2 shadowLedgeClimbStartAdjustment;
-
     public bool canLedgeClimb { get; private set; } = false;
     CapsuleCollider2D col;
 
@@ -168,51 +166,43 @@ public class PlayerMovement : LedgeDetection
 
     void LedgeClimb()
     {
-        //if (isLedgeDetected && !canLedgeClimb)
-        if ((isLedgeDetected && !canLedgeClimb) || shadowLedgeDetectionScript.isLedgeDetected)
+        
+        if (isLedgeDetected && !canLedgeClimb && isFalling)
         {
+            Debug.Log("Started ledge climb");
             canLedgeClimb = true;
             canMove = false;
             canFlip = false;
 
             currentPos = transform.position;
 
-            //Implemented new solution for start position
-            if (!shadowLedgeDetectionScript.isLedgeDetected)
+            if (isFacingRight)
             {
-                if (isFacingRight)
-                {
-                    //ledgePosStart = new Vector2(Mathf.Floor(ledgePosBot.x + wallCheckDistance) - ledgeClimbStartXOffset, Mathf.Floor(ledgePosBot.y) + ledgeClimbStartYOffset);
-                    ledgePosEnd = new Vector2(Mathf.Floor(ledgePosBot.x + wallCheckDistance) + ledgeClimbEndXOffset, Mathf.Floor(ledgePosBot.y) + ledgeClimbEndYOffset);
-                }
-                else
-                {
-                    //ledgePosStart = new Vector2(Mathf.Ceil(ledgePosBot.x - wallCheckDistance) + ledgeClimbStartXOffset, Mathf.Floor(ledgePosBot.y) + ledgeClimbStartYOffset);
-                    ledgePosEnd = new Vector2(Mathf.Ceil(ledgePosBot.x - wallCheckDistance) - ledgeClimbEndXOffset, Mathf.Floor(ledgePosBot.y) + ledgeClimbEndYOffset);
-                }
+                ledgePosEnd = new Vector2(Mathf.Floor(ledgePosBot.x + wallCheckDistance) + ledgeClimbEndXOffset, Mathf.Floor(ledgePosBot.y) + ledgeClimbEndYOffset);
             }
             else
-            { 
-                if (isFacingRight)
-                {
-                //ledgePosStart = new Vector2(Mathf.Floor(ledgePosBot.x + wallCheckDistance) - ledgeClimbStartXOffset, Mathf.Floor(ledgePosBot.y) + ledgeClimbStartYOffset);
-                ledgePosEnd = new Vector2(Mathf.Floor(shadowLedgeDetectionScript.ledgePosBot.x + wallCheckDistance) + shadowLedgeClimbEndXOffset, Mathf.Floor(shadowLedgeDetectionScript.ledgePosBot.y) + shadowLedgeClimbEndYOffset);
-                }
-                else
-                {
-                //ledgePosStart = new Vector2(Mathf.Ceil(ledgePosBot.x - wallCheckDistance) + ledgeClimbStartXOffset, Mathf.Floor(ledgePosBot.y) + ledgeClimbStartYOffset);
-                ledgePosEnd = new Vector2(Mathf.Ceil(shadowLedgeDetectionScript.ledgePosBot.x - wallCheckDistance) - shadowLedgeClimbEndXOffset, Mathf.Floor(shadowLedgeDetectionScript.ledgePosBot.y) + shadowLedgeClimbEndYOffset);
-                }
+            {
+                ledgePosEnd = new Vector2(Mathf.Ceil(ledgePosBot.x - wallCheckDistance) - ledgeClimbEndXOffset, Mathf.Floor(ledgePosBot.y) + ledgeClimbEndYOffset);
             }
+
             anim.SetBool($"{AnimParamaters.isLedgeClimbing}", canLedgeClimb);
             StartCoroutine(FinishLedgeClimb());
         }
 
-         if(canLedgeClimb && !shadowLedgeDetectionScript.isLedgeDetected)
-           transform.position = currentPos + ledgeClimbStartAdjustment;
-         else if (canLedgeClimb && shadowLedgeDetectionScript.isLedgeDetected)
-            transform.position = shadowLedgeDetectionScript.currentPos + shadowLedgeClimbStartAdjustment;
+        //regular ledge climb
+        if (canLedgeClimb && !shadowMagicScript.isBringingPlayer)
+        {
+            transform.position = currentPos + ledgeClimbStartAdjustment;
+            Debug.Log("Regular ledge climb");
+        }
+        //shadow hand ledge climb
+        if (canLedgeClimb && shadowMagicScript.isBringingPlayer)
+        {
+            Debug.Log("Shadow ledge climb");
+        }
 
+
+        //rb2d.constraints = RigidbodyConstraints2D.FreezePosition;
 
     }
 
@@ -220,6 +210,9 @@ public class PlayerMovement : LedgeDetection
     {
         yield return new WaitForSeconds(ledgeClimbAnimLength);
         Debug.Log("Finish ledge climb");
+
+        rb2d.constraints &= ~RigidbodyConstraints2D.FreezePosition;
+
         canLedgeClimb = false;
         canMove = true;
         canFlip = true;
