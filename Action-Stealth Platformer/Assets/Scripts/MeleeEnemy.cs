@@ -2,20 +2,24 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class Patrol : MonoBehaviour
+public class MeleeEnemy : MonoBehaviour
 {
-    Rigidbody2D rb2d;
-    BoxCollider2D wallCollider;
+    enum AnimParameters { isWalking, isAttacking }
+
+    Animator anim;
+    protected Rigidbody2D rb2d;
+    protected BoxCollider2D wallCollider;
     public Transform groundCheck;
     public LayerMask terrainLayer;
 
     public float walkSpeed;
 
-    bool shouldPatrol;
+    protected bool shouldPatrol;
     // Start is called before the first frame update
     void Start()
     {
         rb2d = GetComponent<Rigidbody2D>();
+        anim = GetComponent<Animator>();
         wallCollider = GetComponent<BoxCollider2D>();
         shouldPatrol = true;
     }
@@ -30,19 +34,19 @@ public class Patrol : MonoBehaviour
     {
         if (shouldPatrol)
         {
-            _Patrol();
+            Patrol();
         }
     }
 
-    void _Patrol()
+    protected void Patrol()
     {
-        //Might put in fixed update
         if (!Physics2D.OverlapCircle(groundCheck.position, .1f, terrainLayer) || wallCollider.IsTouchingLayers(terrainLayer))
             Flip();
         transform.Translate(Vector2.right * walkSpeed * Time.deltaTime);
+        anim.SetBool($"{AnimParameters.isWalking}", true);
     }
 
-    void Flip()
+    protected void Flip()
     {
         transform.localScale = new Vector2(transform.localScale.x * -1, transform.localScale.y);
         walkSpeed *= -1;

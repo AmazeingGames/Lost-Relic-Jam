@@ -127,22 +127,27 @@ public class PlayerMovement : MonoBehaviour
 
         if (isGrounded)
         {
-            anim.SetBool($"{AnimParamaters.isJumping}", false);
+            //anim.SetBool($"{AnimParamaters.isJumping}", false);
             anim.SetBool($"{AnimParamaters.isFalling}", false);
 
             groundedRemember = groundedRememberTime;
             extraJumpsCurrent = extraJumpsValue;
         }
-        if (Input.GetButtonDown("Jump"))
-        {
-            jumpPressedRemember = jumpRememberTime;
-        }
-
         if (isFalling)
         {
             anim.SetBool($"{AnimParamaters.isFalling}", true);
             anim.SetBool($"{AnimParamaters.isJumping}", false);
         }
+
+
+
+
+        if (Input.GetButtonDown("Jump"))
+        {
+            jumpPressedRemember = jumpRememberTime;
+        }
+
+        
         LedgeClimb();
 
         //attempt to create double jump by ANDRES BABY
@@ -181,8 +186,10 @@ public class PlayerMovement : MonoBehaviour
     void Jump()
     {
         ApplyAirLinearDrag();
-        anim.SetBool($"{AnimParamaters.isJumping}", true);
+        anim.SetBool($"{AnimParamaters.isGrounded}", false);
         anim.SetBool($"{AnimParamaters.isFalling}", false);
+        anim.SetBool($"{AnimParamaters.isJumping}", true);
+
 
         //extrajump
         if (!isGrounded)
