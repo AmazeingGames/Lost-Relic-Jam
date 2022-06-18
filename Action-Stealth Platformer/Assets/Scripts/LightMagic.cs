@@ -47,7 +47,7 @@ public class LightMagic : MonoBehaviour
         if (Input.GetButtonDown("lightPlatform") && !isGrounded)
            SpawnLightPlatform();
     
-        Debug.Log(isGrounded);
+        //Debug.Log(isGrounded);
     }
     //Not once per frame but at a standard fixed rate
     private void FixedUpdate()
