@@ -4,18 +4,22 @@ using UnityEngine;
 
 public class PlayerMovement : LedgeDetection
 {
+    LedgeDetection shadowLedgeDetectionScript;
+    ShadowMagic shadowMagicScript;
+    GameObject shadowhandObject;
+
     Rigidbody2D rb2d;
     Animator anim;
-    
+
     public float moveAcceleration;
     public float maxMoveSpeed;
     public float deceleration;
-
     public float groundRayCastLength;
     public float jumpForce = 12f;
     public float airLinearDrag = 2.5f;
     public float fallMultiplier = 8f;
     public float lowJumpFallMultiplier = 5f;
+
 
     public float jumpRememberTime = .25f;
     public float groundedRememberTime = .25f;
@@ -32,8 +36,6 @@ public class PlayerMovement : LedgeDetection
     bool isFacingRight = true;
 
     [Header("Ledge Climb")]
-
-
     public float ledgeClimbAnimLength;
 
     //Implemented new solution for start position
@@ -43,16 +45,20 @@ public class PlayerMovement : LedgeDetection
     public float ledgeClimbEndXOffset;
     public float ledgeClimbEndYOffset;
 
-    public Vector2 startAdjustment;
+    public Vector2 ledgeClimbStartAdjustment;
 
-    bool canLedgeClimb = false;
+    public float shadowLedgeClimbEndXOffset;
+    public float shadowLedgeClimbEndYOffset;
+
+    public bool canLedgeClimb { get; private set; } = false;
     CapsuleCollider2D col;
 
     enum AnimStates { Idle, Run, Jump, Fall, Landing, LedgeClimb }
     enum AnimParamaters { isGrounded, horInput, isJumping, isFalling, isLedgeClimbing }
 
     private Vector3 groundRaycastOffset;
-    [HideInInspector]public bool isGrounded => Physics2D.Raycast(transform.position + groundRaycastOffset, Vector2.down, groundRayCastLength, terrainLayer) || Physics2D.Raycast(transform.position - groundRaycastOffset, Vector2.down, groundRayCastLength, terrainLayer);
+
+    public bool isGrounded { get => Physics2D.Raycast(transform.position + groundRaycastOffset, Vector2.down, groundRayCastLength, terrainLayer) || Physics2D.Raycast(transform.position - groundRaycastOffset, Vector2.down, groundRayCastLength, terrainLayer); }
 
     float horizontalInput;
     float verticalInput;
@@ -61,8 +67,8 @@ public class PlayerMovement : LedgeDetection
     bool canCornerCorrect => Physics2D.Raycast(transform.position + edgeRaycastOffset, Vector2.up, topRayCastLength, terrainLayer) && !Physics2D.Raycast(transform.position + innerRaycastOffset, Vector2.up, topRayCastLength, terrainLayer) || Physics2D.Raycast(transform.position - edgeRaycastOffset, Vector2.up, topRayCastLength, terrainLayer) && !Physics2D.Raycast(transform.position - innerRaycastOffset, Vector2.up, topRayCastLength, terrainLayer);
     bool isFalling => rb2d.velocity.y < 0;
 
-    bool canMove = true;
-    bool canFlip = true;
+    public bool canMove = true;
+    public bool canFlip = true;
 
 
 
@@ -82,6 +88,10 @@ public class PlayerMovement : LedgeDetection
         rb2d = GetComponent<Rigidbody2D>();
         anim = GetComponent<Animator>();
         col = GetComponent<CapsuleCollider2D>();
+
+        shadowMagicScript = GetComponent<ShadowMagic>();
+        shadowhandObject = shadowMagicScript.shadowhandObject;
+        shadowLedgeDetectionScript = shadowhandObject.GetComponent<LedgeDetection>();
     }
 
     // Update is called once per frame
@@ -124,14 +134,13 @@ public class PlayerMovement : LedgeDetection
 
     void FixedUpdate()
     {
-        if(isFalling)
-            CheckSurroundings();
-        //Debug.Log($"Can ledge climb: {canLedgeClimb}");
-        //Debug.Log($"Is touching wall: {isTouchingWall}");
-        //Debug.Log($"Is ledge detected: {isLedgeDetected}");
+          CheckSurroundings();
+            //Debug.Log($"Can ledge climb: {canLedgeClimb}");
+            //Debug.Log($"Is touching wall: {isTouchingWall}");
+            //Debug.Log($"Is ledge detected: {isLedgeDetected}");
 
-        if (canMove)
-            MoveCharacter();
+            if (canMove)
+                MoveCharacter();
        
         if (isGrounded)
         {
@@ -151,37 +160,49 @@ public class PlayerMovement : LedgeDetection
             Jump();
            
         }
-        if (canCornerCorrect && !isGrounded)
-            CornerCorrect(rb2d.velocity.y);
-}
+        //if (canCornerCorrect && !isGrounded)
+            //CornerCorrect(rb2d.velocity.y);
+    }
+
     void LedgeClimb()
     {
+        
         if (isLedgeDetected && !canLedgeClimb && isFalling)
         {
+            Debug.Log("Started ledge climb");
             canLedgeClimb = true;
             canMove = false;
             canFlip = false;
 
             currentPos = transform.position;
 
-            //Implemented new solution for start position
             if (isFacingRight)
             {
-                //ledgePosStart = new Vector2(Mathf.Floor(ledgePosBot.x + wallCheckDistance) - ledgeClimbStartXOffset, Mathf.Floor(ledgePosBot.y) + ledgeClimbStartYOffset);
                 ledgePosEnd = new Vector2(Mathf.Floor(ledgePosBot.x + wallCheckDistance) + ledgeClimbEndXOffset, Mathf.Floor(ledgePosBot.y) + ledgeClimbEndYOffset);
             }
             else
             {
-                //ledgePosStart = new Vector2(Mathf.Ceil(ledgePosBot.x - wallCheckDistance) + ledgeClimbStartXOffset, Mathf.Floor(ledgePosBot.y) + ledgeClimbStartYOffset);
                 ledgePosEnd = new Vector2(Mathf.Ceil(ledgePosBot.x - wallCheckDistance) - ledgeClimbEndXOffset, Mathf.Floor(ledgePosBot.y) + ledgeClimbEndYOffset);
             }
 
             anim.SetBool($"{AnimParamaters.isLedgeClimbing}", canLedgeClimb);
             StartCoroutine(FinishLedgeClimb());
         }
-        
-         if(canLedgeClimb)
-           transform.position = currentPos + startAdjustment;
+
+        //regular ledge climb
+        if (canLedgeClimb && !shadowMagicScript.isBringingPlayer)
+        {
+            transform.position = currentPos + ledgeClimbStartAdjustment;
+            Debug.Log("Regular ledge climb");
+        }
+        //shadow hand ledge climb
+        if (canLedgeClimb && shadowMagicScript.isBringingPlayer)
+        {
+            Debug.Log("Shadow ledge climb");
+        }
+
+
+        //rb2d.constraints = RigidbodyConstraints2D.FreezePosition;
 
     }
 
@@ -189,12 +210,17 @@ public class PlayerMovement : LedgeDetection
     {
         yield return new WaitForSeconds(ledgeClimbAnimLength);
         Debug.Log("Finish ledge climb");
+
+        rb2d.constraints &= ~RigidbodyConstraints2D.FreezePosition;
+
         canLedgeClimb = false;
-        transform.position = ledgePosEnd;
         canMove = true;
         canFlip = true;
         isLedgeDetected = false;
         anim.SetBool($"{AnimParamaters.isLedgeClimbing}", canLedgeClimb);
+        transform.position = ledgePosEnd;
+        //shadowLedgeDetectionScript.isLedgeDetected = false;
+
     }
 
     void MoveCharacter()
@@ -202,7 +228,9 @@ public class PlayerMovement : LedgeDetection
         rb2d.AddForce(new Vector2(horizontalInput, 0f) * moveAcceleration);
 
         if (Mathf.Abs(rb2d.velocity.x) > maxMoveSpeed)
+        {
             rb2d.velocity = new Vector2(Mathf.Sign(rb2d.velocity.x) * maxMoveSpeed, rb2d.velocity.y);
+        }
     }
 
     void ApplyGroundLinearDrag()
@@ -232,7 +260,6 @@ public class PlayerMovement : LedgeDetection
     
 
     private void OnDrawGizmos()
-
     {
         //Ground Check
         Gizmos.color = Color.green;
@@ -259,7 +286,6 @@ public class PlayerMovement : LedgeDetection
         //Implemented new solution for start position
         //Gizmos.DrawLine(ledgePosStart, ledgePosEnd);
         Gizmos.DrawLine(currentPos, ledgePosEnd);
-
     }
 
     void FallMultiplier()
@@ -305,5 +331,14 @@ public class PlayerMovement : LedgeDetection
             transform.position = new Vector3(transform.position.x - newPos, transform.position.y, transform.position.z);
             rb2d.velocity = new Vector2(rb2d.velocity.x, yVelocity);
         }
+    }
+
+    protected override bool IsTouchingLedge()
+    {
+        if (isFalling)
+        {
+             return base.IsTouchingLedge();
+          }
+          else return false;
     }
 }

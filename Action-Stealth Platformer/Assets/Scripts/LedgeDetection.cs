@@ -2,39 +2,46 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public abstract class LedgeDetection : MonoBehaviour
-{
+
+public class LedgeDetection : MonoBehaviour
+{ 
+    public GameObject ledgeCheck;
+    public GameObject wallCheck;
+    public float wallCheckDistance = .3f;
     public LayerMask terrainLayer;
-    public Transform ledgeCheck;
-    public Transform wallCheck;
+    
 
-    public float wallCheckDistance;
+    public bool isTouchingWall { get; protected set; }
+    public bool isLedgeDetected;
 
-    protected bool isTouchingWall;
     protected bool isTouchingLedge;
-    protected bool isLedgeDetected;
+    public Vector2 ledgePosBot { get; protected set; }
+    public Vector2 ledgePosStart;
+    public Vector2 ledgePosEnd;
+    public Vector2 currentPos;
 
-    protected Vector2 ledgePosStart;
-    protected Vector2 ledgePosEnd;
-    protected Vector2 currentPos;
-
-    protected Vector2 ledgePosBot;
 
     void FixedUpdate()
     {
         CheckSurroundings();
     }
 
-    public virtual void CheckSurroundings()
+    protected bool CheckSurroundings()
     {
-        isTouchingWall = Physics2D.Raycast(wallCheck.position, transform.right, wallCheckDistance, terrainLayer);
-        isTouchingLedge = Physics2D.Raycast(ledgeCheck.position, transform.right, wallCheckDistance, terrainLayer);
+        isTouchingWall = Physics2D.Raycast(wallCheck.transform.position, transform.right, wallCheckDistance, terrainLayer);
+        isTouchingLedge = Physics2D.Raycast(ledgeCheck.transform.position, transform.right, wallCheckDistance, terrainLayer);
+        return IsTouchingLedge();
+    }
 
+    protected virtual bool IsTouchingLedge()
+    {
         if (isTouchingWall && !isTouchingLedge && !isLedgeDetected)
         {
             Debug.Log("We are touching a ledge");
             isLedgeDetected = true;
-            ledgePosBot = wallCheck.position;
+            ledgePosBot = wallCheck.transform.position;
+            return true;
         }
+        return false;
     }
 }
